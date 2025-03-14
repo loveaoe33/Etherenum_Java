@@ -49,6 +49,7 @@ import org.web3j.tx.gas.ContractGasProvider;
 import org.web3j.utils.Convert;
 import org.web3j.utils.Numeric;
 
+import BlockChainObject.BlockClass;
 import net.sf.json.JSONObject;
 
 @Service // @Compnent是最普遍用法 @Bean可以選擇new的物件
@@ -71,19 +72,21 @@ public class EthereumComponent {
 	@Autowired
 	public EthereumComponent(ContractGasProvider contractGasProvider) {
 		this.walletFilePath = "C:/Users/loveaoe33/AppData/Local/Ethereum/node5/keystore";
-		this.walletFilePath_node3="C:/Users/loveaoe33/AppData/Local/Ethereum/node3/keystore";
+		this.walletFilePath_node3 = "C:/Users/loveaoe33/AppData/Local/Ethereum/node3/keystore";
 		this.password = "123456";
-		this.web3j = Web3j.build(new HttpService("http://127.0.0.1:8085"));   //合約網址
-		this.web3j_RPC = Web3j.build(new HttpService("http://127.0.0.1:8085")); //合約網址
-		
-		this.node3=Web3j.build(new HttpService("http://127.0.0.1:8084"));
-		this.node3_RPC=Web3j.build(new HttpService("http://127.0.0.1:8084"));
+		this.web3j = Web3j.build(new HttpService("http://127.0.0.1:8085")); // 合約網址
+		this.web3j_RPC = Web3j.build(new HttpService("http://127.0.0.1:8085")); // 合約網址
+
+		this.node3 = Web3j.build(new HttpService("http://127.0.0.1:8084"));
+		this.node3_RPC = Web3j.build(new HttpService("http://127.0.0.1:8084"));
 		this.chainId = 15;
 		this.gasLimit = new java.math.BigInteger("4700000");
 		this.gasprice = new java.math.BigInteger("4700");
 		this.contractBinaryPath = "C:/Users/loveaoe33/Desktop/blockChain/bin/E_Contract_sol_SimpleContract.bin";
 		this.contractABIPath = "C:/Users/loveaoe33/Desktop/blockChain/bin/E_Contract_sol_SimpleContract.abi";
 		this.contractAddress = "0x7517f495432B590846e284bF95f5EFE347f45337"; // 合约地址
+		this.contractAddress = "0x2e5bb1e2ed37e7c573e11185d4c61240781fd617"; // 合约地址
+
 		this.contractGasProvider = contractGasProvider;
 	}
 
@@ -95,7 +98,7 @@ public class EthereumComponent {
 		if (files != null && files.length >= 1) {
 			File secondFile = files[0];
 
-			credentials = Load_Wallet(walletFilePath,secondFile.getName());
+			credentials = Load_Wallet(walletFilePath, secondFile.getName());
 			Return_Message = String.format("私:%s公:%s地址%s", credentials.getEcKeyPair().getPrivateKey(),
 					credentials.getEcKeyPair().getPublicKey(), credentials.getAddress());
 			return credentials;
@@ -103,7 +106,7 @@ public class EthereumComponent {
 		}
 		return null;
 	}
-	
+
 	public Credentials Test_Wallet2() throws IOException, CipherException {
 		File directory = new File(walletFilePath_node3);
 		File[] files = directory.listFiles();
@@ -112,7 +115,7 @@ public class EthereumComponent {
 		if (files != null && files.length >= 1) {
 			File secondFile = files[1];
 
-			credentials = Load_Wallet(walletFilePath_node3,secondFile.getName());
+			credentials = Load_Wallet(walletFilePath_node3, secondFile.getName());
 			Return_Message = String.format("私:%s公:%s地址%s", credentials.getEcKeyPair().getPrivateKey(),
 					credentials.getEcKeyPair().getPublicKey(), credentials.getAddress());
 			return credentials;
@@ -120,7 +123,6 @@ public class EthereumComponent {
 		}
 		return null;
 	}
-	
 
 	public Credentials Test_Admin_Wallet() throws IOException, CipherException {
 		File directory = new File(walletFilePath);
@@ -130,7 +132,7 @@ public class EthereumComponent {
 		if (files != null && files.length >= 0) {
 			File secondFile = files[0];
 
-			credentials = Load_Wallet(walletFilePath_node3,secondFile.getName());
+			credentials = Load_Wallet(walletFilePath_node3, secondFile.getName());
 			Return_Message = String.format("私:%s公:%s地址%s", credentials.getEcKeyPair().getPrivateKey(),
 					credentials.getEcKeyPair().getPublicKey(), credentials.getAddress());
 			return credentials;
@@ -140,7 +142,7 @@ public class EthereumComponent {
 	}
 
 	// 載入憑證
-	public Credentials Load_Wallet(String Wallet_Paht,String FileName) throws IOException, CipherException { // 載入憑證
+	public Credentials Load_Wallet(String Wallet_Paht, String FileName) throws IOException, CipherException { // 載入憑證
 		System.out.println("FileName: " + FileName);
 		String Wallet_Name = Wallet_Paht + "/" + FileName;
 		Credentials credentials = WalletUtils.loadCredentials(password, Wallet_Name); // 憑證載入
@@ -246,9 +248,9 @@ public class EthereumComponent {
 			EthBlock.Block latestBlock = web3j.ethGetBlockByNumber(DefaultBlockParameter.valueOf("latest"), true).send()
 					.getBlock();
 			if (latestBlock != null) {
-				Message = String.format("Block number:%s,Block hash:%s,Transactions:%s", latestBlock.getNumber(),
+				Message = String.format("Block number: %s\nBlock hash: %s\nTransactions: %s\n", latestBlock.getNumber(),
 						latestBlock.getHash(), latestBlock.getTransactions().size());
-				// 输出最后一个区块的交易信息
+				System.out.println(Message);
 			}
 		} catch (Exception e) {
 			return "查看錯誤";
@@ -257,10 +259,8 @@ public class EthereumComponent {
 	}
 
 	// 完成_調閱所有交易紀錄
-	public ArrayList<String> View_Array_Block() throws IOException {
-		JSONObject jsonObject = new JSONObject();
-		ArrayList<String> Block_Date = new ArrayList<String>();
-
+	public ArrayList<BlockClass> View_Array_Block() throws IOException {
+		ArrayList<BlockClass> Block_Date = new ArrayList<BlockClass>();
 		java.math.BigInteger startBlock = java.math.BigInteger.valueOf(0); // 起始区块号
 		java.math.BigInteger endBlock = web3j.ethBlockNumber().send().getBlockNumber();
 		for (java.math.BigInteger i = startBlock; i.compareTo(endBlock) <= 0; i = i.add(java.math.BigInteger.ONE)) {
@@ -274,13 +274,9 @@ public class EthereumComponent {
 
 				for (EthBlock.TransactionResult txResult : blocks.getTransactions()) {
 					EthBlock.TransactionObject tx = (EthBlock.TransactionObject) txResult.get();
-					jsonObject.put("Transaction", tx.getHash());
-					jsonObject.put("From", tx.getFrom());
-					jsonObject.put("To", tx.getTo());
-					jsonObject.put("Value", tx.getValue());
-					jsonObject.put("Gas", tx.getGasPrice());
-					jsonObject.put("Limit", tx.getGas());
-					Block_Date.add(jsonObject.toString());
+					BlockClass blockClass = BlockClass.builder().Transaction(tx.getHash()).From(tx.getFrom())
+							.To(tx.getTo()).Value(tx.getValue()).Gas(tx.getGasPrice()).Limit(tx.getGas()).build();
+					Block_Date.add(blockClass);
 
 				}
 				;
@@ -325,7 +321,7 @@ public class EthereumComponent {
 		String Return_Message;
 		if (files != null && files.length >= 2) {
 			File secondFile = files[1];
-			credentials = Load_Wallet(walletFilePath_node3,secondFile.getName());
+			credentials = Load_Wallet(walletFilePath_node3, secondFile.getName());
 			Return_Message = String.format("私:%s公:%s地址%s", credentials.getEcKeyPair().getPrivateKey(),
 					credentials.getEcKeyPair().getPublicKey(), credentials.getAddress());
 			boolean wallet_check = Check_Wallet_Bool(Wallet_Address);
@@ -341,7 +337,8 @@ public class EthereumComponent {
 		}
 
 	}
-    //轉帳
+
+	// 轉帳
 	public String TransFer(Credentials credentials, String to_Address) throws InterruptedException, IOException,
 			CipherException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException {
 		BigDecimal amount = BigDecimal.valueOf(1.0); // Trans_Money
@@ -389,8 +386,6 @@ public class EthereumComponent {
 	// 完成_合約建立
 	public String Contract_build() throws Exception {
 		Credentials credentials = Test_Wallet(); // 需要公私鑰才能部署合約 先使用測試
-		String contractBinaryPath = "C:/Users/loveaoe33/Desktop/blockChain/bin/E_Contract_sol_SimpleContract.bin";
-		String contractABIPath = "C:/Users/loveaoe33/Desktop/blockChain/bin/E_Contract_sol_SimpleContract.abi";
 		// 读取合约字节码文件内容
 		String contractBinary = readFileAsString(contractBinaryPath);
 		// 读取合约 ABI 文件内容
@@ -408,6 +403,7 @@ public class EthereumComponent {
 		return message;
 
 	}
+
 
 	@GetMapping("BlockChain/Contract_View")
 	public String Contract_View_Detail() {
@@ -435,8 +431,6 @@ public class EthereumComponent {
 		}
 
 	}
-	
-	
 
 	// 完成_設置合約內容
 	public String Contract_Set() throws Exception {
@@ -460,56 +454,61 @@ public class EthereumComponent {
 		}
 
 	}
-	
-	public String Contract_View(){  //EVM（以太坊虚拟机）字節馬
-		try {
-            // 获取智能合约的代码
-            EthGetCode ethGetCode = web3j.ethGetCode(contractAddress, DefaultBlockParameterName.LATEST).send();
-            
-            if (ethGetCode.hasError()) {
-                System.out.println("Error: " + ethGetCode.getError().getMessage());
-                return "Error: " + ethGetCode.getError().getMessage();
 
-            } else {
-                String contractCode = ethGetCode.getCode();
-                System.out.println("Smart Contract Code: " + contractCode);
-                return "Smart Contract Code: " + contractCode;
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-            return "調用錯誤";
-        }
+	public String Contract_View() { // EVM（以太坊虚拟机）字節馬
+		try {
+			// 获取智能合约的代码
+			EthGetCode ethGetCode = web3j.ethGetCode(contractAddress, DefaultBlockParameterName.LATEST).send();
+
+			if (ethGetCode.hasError()) {
+				System.out.println("Error: " + ethGetCode.getError().getMessage());
+				return "Error: " + ethGetCode.getError().getMessage();
+
+			} else {
+				String contractCode = ethGetCode.getCode();
+				System.out.println("Smart Contract Code: " + contractCode);
+				return "Smart Contract Code: " + contractCode;
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+			return "調用錯誤";
+		}
 	}
-	//完成_列出所有合約
-	public ArrayList<String> Print_Contract(){
+
+	// 完成_列出所有合約
+	public ArrayList<String> Print_Contract() {
 		ArrayList<String> Contract_Array = new ArrayList();
 		JSONObject jsonObject = new JSONObject();
-        String from_Contract="0x2090f718972f8bf288f32a71a10dcacc5a5bd817";
+		String from_Contract = "0x2090f718972f8bf288f32a71a10dcacc5a5bd817";
 		try {
-			EthBlock ethblock=web3j.ethGetBlockByNumber(DefaultBlockParameterName.LATEST, false).send();
-			java.math.BigInteger lastBlockNumber=ethblock.getBlock().getNumber();
+			EthBlock ethblock = web3j.ethGetBlockByNumber(DefaultBlockParameterName.LATEST, false).send();
+			java.math.BigInteger lastBlockNumber = ethblock.getBlock().getNumber();
 
-			for(long i=0;i<=lastBlockNumber.longValue();i++) {
-				EthBlock.Block block=web3j.ethGetBlockByNumber(DefaultBlockParameter.valueOf(java.math.BigInteger.valueOf(i)), true).send().getBlock();
-                List<TransactionResult> transactions = block.getTransactions();  
-                for(TransactionResult tx:transactions) { //TransactionResult是一个泛型类 取得區塊內的物件資料
-                	EthBlock.TransactionObject tractions=(TransactionObject) tx.get();
-                	String contractAddress=tractions.getFrom();                  
-                	if(contractAddress.equals(from_Contract)) {    //TransactionReceipt可以依照hash取得完整的交易明細
-            			Optional<TransactionReceipt> receipt= web3j.ethGetTransactionReceipt(((EthBlock.TransactionObject) tx.get()).getHash()).send().getTransactionReceipt();
-                		jsonObject.put("Contract_Transaction:", receipt.get().getTransactionHash());
-                		jsonObject.put("Contract_Address:", receipt.get().getContractAddress());
-                		Contract_Array.add(jsonObject.toString());
-                	}
-                }
+			for (long i = 0; i <= lastBlockNumber.longValue(); i++) {
+				EthBlock.Block block = web3j
+						.ethGetBlockByNumber(DefaultBlockParameter.valueOf(java.math.BigInteger.valueOf(i)), true)
+						.send().getBlock();
+				List<TransactionResult> transactions = block.getTransactions();
+				for (TransactionResult tx : transactions) { // TransactionResult是一个泛型类 取得區塊內的物件資料
+					EthBlock.TransactionObject tractions = (TransactionObject) tx.get();
+					String contractAddress = tractions.getFrom();
+					if (contractAddress.equals(from_Contract)) { // TransactionReceipt可以依照hash取得完整的交易明細
+						Optional<TransactionReceipt> receipt = web3j
+								.ethGetTransactionReceipt(((EthBlock.TransactionObject) tx.get()).getHash()).send()
+								.getTransactionReceipt();
+						jsonObject.put("Contract_Transaction:", receipt.get().getTransactionHash());
+						jsonObject.put("Contract_Address:", receipt.get().getContractAddress());
+						Contract_Array.add(jsonObject.toString());
+					}
+				}
 			}
 			return Contract_Array;
-		}catch(Exception e) {
+		} catch (Exception e) {
 			Contract_Array.add("合約調閱錯誤");
 			return Contract_Array;
 		}
 	}
-	
+
 	
 
 }
