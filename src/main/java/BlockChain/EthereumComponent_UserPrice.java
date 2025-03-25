@@ -37,6 +37,7 @@ import ch.qos.logback.core.subst.Token.Type;
 import io.reactivex.Flowable;
 import jnr.ffi.provider.BadType;
 import jnr.unixsocket.Credentials;
+import lib.BlockConfig;
 import lib.UserPrice;
 import lib.UserPrice.AdminUpdateUserRecodeEventResponse;
 import lib.UserPrice.TransactionRecordEventResponse;
@@ -46,37 +47,25 @@ import lib.UserPrice.Users;
 @Service
 @ComponentScan(basePackages = {"BlockChainObject","BlockChainObject"})
 public class EthereumComponent_UserPrice {
-	private Web3j node5;// 節點參數要改
-	private Web3j node5_RPC;// 節點參數要改
-	private Web3j node3;// 節點參數要改
-	private Web3j node3_RPC;// 節點參數要改
+
 	private UserPrice userContract;
 	private ResObject resObject;
 	private AdminUpdateObject adminData;
 	private TransactionObject transactionObject;
 	private EventService eventService;
+	private BlockConfig blockConfig;
 //	private 
 //    private 
 
 
-	ContractGasProvider contractGasProvider;
-	String walletFilePath;// 節點參數要改
-	String walletFilePath_node3;// 節點參數要改
-	String password;
-	long chainId;
-	java.math.BigInteger gasLimit;
-	java.math.BigInteger gasPrice;
-	String contractBinaryPath;
-	String contractABIPath;
-	String contractAddress;
-
 	@Autowired
-	public EthereumComponent_UserPrice(ContractGasProvider contractGasProvider,ResObject resObject,AdminUpdateObject adminData,TransactionObject transactionObject,EventService eventService) throws IOException, CipherException {
+	public EthereumComponent_UserPrice(ContractGasProvider contractGasProvider,ResObject resObject,AdminUpdateObject adminData,TransactionObject transactionObject,EventService eventService,BlockConfig blockConfig) throws IOException, CipherException {
 		this.resObject=resObject;
 		this.adminData=adminData;
 		this.transactionObject=transactionObject;
 		this.eventService=eventService;
-		Node_Init();
+		this.blockConfig=blockConfig;
+		this.userContract=blockConfig.userContract;
 	}
 
 	public String readFileAsString(String filePath) throws IOException {
@@ -89,15 +78,15 @@ public class EthereumComponent_UserPrice {
 	public String Contract_UserPrice_build() throws Exception {
 		String constuctorData = "UserPrcie_Contract";
 		BigInteger value = BigInteger.ZERO;
-		org.web3j.crypto.Credentials credentials = node_credential(); // 需要公私鑰才能部署合約 先使用測試
+		org.web3j.crypto.Credentials credentials = blockConfig.node_credential(); // 需要公私鑰才能部署合約 先使用測試
 //		// 读取合约字节码文件内容
 //		String contractBinary = readFileAsString(contractBinaryPath);
 //		// 读取合约 ABI 文件内容
 //		String contractABI = readFileAsString(contractABIPath);
-		TransactionManager transactionManager = new ClientTransactionManager(node5, credentials.getAddress());
+		TransactionManager transactionManager = new ClientTransactionManager(blockConfig.node5, credentials.getAddress());
 //		E_Contract_sol_SimpleContract contract = E_Contract_sol_SimpleContract
 //				.deploy(web3j, transactionManager, contractGasProvider).send();				
-		UserPrice userPriceContract = UserPrice.deploy(node5, credentials, contractGasProvider, constuctorData).send();
+		UserPrice userPriceContract = UserPrice.deploy(blockConfig.node5, credentials, blockConfig.contractGasProvider, constuctorData).send();
 		String Contract_Address = userPriceContract.getContractAddress();
 		TransactionReceipt transactionReceipt = userPriceContract.getTransactionReceipt().get();
 		String message = String.format("合約地址{},交易收據{}", Contract_Address, transactionReceipt.toString());
@@ -106,57 +95,8 @@ public class EthereumComponent_UserPrice {
 
 	}
 
-	public void Node_Init() throws IOException, CipherException {
 
-		this.walletFilePath = "C:/Users/loveaoe33/AppData/Local/Ethereum/node5/keystore";
-		this.walletFilePath_node3 = "C:/Users/loveaoe33/AppData/Local/Ethereum/node3/keystore";
-		this.password = "123456";
-		this.node5 = Web3j.build(new HttpService("http://127.0.0.1:8085")); // Contract_IpAddress
-		this.node5_RPC = Web3j.build(new HttpService("http://127.0.0.1:8085")); // 合約網址
 
-		this.node3 = Web3j.build(new HttpService("http://127.0.0.1:8084"));
-		this.node3_RPC = Web3j.build(new HttpService("http://127.0.0.1:8084"));
-		this.chainId = 15;
-		this.gasLimit = new java.math.BigInteger("4700000");
-		this.gasPrice = new java.math.BigInteger("4700");
-		this.contractBinaryPath = "C:/Users/loveaoe33/Desktop/hard-Contrac/artifacts/contracts/abi/UserPrice.bin";
-		this.contractABIPath = "C:/Users/loveaoe33/Desktop/hard-Contrac/artifacts/contracts/abi/UserPrice.abi";
-		this.contractAddress = "0x2220d0e9fc7fb74bccf55d50625ee83f6805dc9e"; // 合约地址
-		DefaultGasProvider gasProvider = new DefaultGasProvider() {
-			@Override
-			public BigInteger getGasLimit() {
-				return BigInteger.valueOf(5000000); // 增加 gas 限额
-			}
-		};
-		this.contractGasProvider = gasProvider;
-		userContract = UserPrice.load(contractAddress, node5, node_credential(), gasProvider);
-
-	}
-
-	// 載入憑證
-	public org.web3j.crypto.Credentials Load_Wallet(String Wallet_Paht, String FileName)
-			throws IOException, CipherException { // 載入憑證
-		System.out.println("FileName: " + FileName);
-		String Wallet_Name = Wallet_Paht + "/" + FileName;
-		org.web3j.crypto.Credentials credentials = WalletUtils.loadCredentials(password, Wallet_Name); // 憑證載入
-		System.out.println("Address: " + credentials.getAddress());
-		return credentials;
-	}
-
-	public org.web3j.crypto.Credentials node_credential() throws IOException, CipherException {
-		File directory = new File(walletFilePath);
-		File[] files = directory.listFiles();
-		org.web3j.crypto.Credentials credentials;
-		String Return_Message;
-		if (files != null && files.length >= 1) {
-			File secondFile = files[0];
-			credentials = Load_Wallet(walletFilePath, secondFile.getName());
-			Return_Message = String.format("私:%s公:%s地址%s", credentials.getEcKeyPair().getPrivateKey(),
-					credentials.getEcKeyPair().getPublicKey(), credentials.getAddress());
-			return credentials;
-		}
-		return null;
-	}
 
 	public String Price_setUser() throws Exception {
 		String NodeAddress = "123";
@@ -228,8 +168,8 @@ public class EthereumComponent_UserPrice {
 		String Result;
 		try {
 
-			TransactionReceipt data = userContract.updateUser(NodeAddress, Admin, UpdateAccount, UserPword, gasLimit,
-					gasPrice, PriceRemark, UpdateDate, CreateName, AccountIsVal).send();
+			TransactionReceipt data = userContract.updateUser(NodeAddress, Admin, UpdateAccount, UserPword, blockConfig.gasLimit,
+					blockConfig.gasPrice, PriceRemark, UpdateDate, CreateName, AccountIsVal).send();
 			Result = ("0x1".equals(data.getStatus())) ? "Insert Sucess" : "Insert fail";
 			return Result;
 
@@ -273,7 +213,7 @@ public class EthereumComponent_UserPrice {
 		EthFilter filter = new EthFilter(
 			    DefaultBlockParameterName.EARLIEST,
 			    DefaultBlockParameterName.LATEST,
-			    contractAddress
+			    blockConfig.contractAddress
 			);	
 		Flowable<UserResgisterEventResponse> data = userContract.userResgisterEventFlowable(filter);
 		
@@ -302,7 +242,7 @@ public class EthereumComponent_UserPrice {
 		EthFilter filter = new EthFilter(
 			    DefaultBlockParameterName.EARLIEST,
 			    DefaultBlockParameterName.LATEST,
-			    contractAddress
+			    blockConfig.contractAddress
 			);	
 		Flowable<TransactionRecordEventResponse> data = userContract.transactionRecordEventFlowable(filter);
 		
@@ -329,7 +269,7 @@ public class EthereumComponent_UserPrice {
 		EthFilter filter = new EthFilter(
 			    DefaultBlockParameterName.EARLIEST,
 			    DefaultBlockParameterName.LATEST,
-			    contractAddress
+			    blockConfig.contractAddress
 			);	
 		Flowable<AdminUpdateUserRecodeEventResponse> data = userContract.adminUpdateUserRecodeEventFlowable(filter);
 		data.subscribe(event -> {
