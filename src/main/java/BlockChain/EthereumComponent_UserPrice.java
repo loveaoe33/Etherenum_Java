@@ -79,18 +79,11 @@ public class EthereumComponent_UserPrice {
 		String constuctorData = "UserPrcie_Contract";
 		BigInteger value = BigInteger.ZERO;
 		org.web3j.crypto.Credentials credentials = blockConfig.node_credential(); // 需要公私鑰才能部署合約 先使用測試
-//		// 读取合约字节码文件内容
-//		String contractBinary = readFileAsString(contractBinaryPath);
-//		// 读取合约 ABI 文件内容
-//		String contractABI = readFileAsString(contractABIPath);
-		TransactionManager transactionManager = new ClientTransactionManager(blockConfig.node5, credentials.getAddress());
-//		E_Contract_sol_SimpleContract contract = E_Contract_sol_SimpleContract
-//				.deploy(web3j, transactionManager, contractGasProvider).send();				
+		TransactionManager transactionManager = new ClientTransactionManager(blockConfig.node5, credentials.getAddress());			
 		UserPrice userPriceContract = UserPrice.deploy(blockConfig.node5, credentials, blockConfig.contractGasProvider, constuctorData).send();
 		String Contract_Address = userPriceContract.getContractAddress();
 		TransactionReceipt transactionReceipt = userPriceContract.getTransactionReceipt().get();
 		String message = String.format("合約地址{},交易收據{}", Contract_Address, transactionReceipt.toString());
-
 		return message;
 
 	}
@@ -210,16 +203,7 @@ public class EthereumComponent_UserPrice {
       return "Sucess";
 	}
 	public String Price_getUserApprovLog() throws InterruptedException {//get block Resgister event
-		EthFilter filter = new EthFilter(
-			    DefaultBlockParameterName.EARLIEST,
-			    DefaultBlockParameterName.LATEST,
-			    blockConfig.contractAddress
-			);	
-		Flowable<UserResgisterEventResponse> data = userContract.userResgisterEventFlowable(filter);
-		
-		
-		
-		
+		Flowable<UserResgisterEventResponse> data = userContract.userResgisterEventFlowable(blockConfig.getfilter());
 		data.subscribe(event -> {
 			synchronized (resObject) {
 				resObject.setAdminAccount(event.adminAccount);
@@ -232,19 +216,13 @@ public class EthereumComponent_UserPrice {
         throwable->System.out.println("Error"+throwable.getMessage()),
         ()->System.out.println("Comleted the data:"+eventService.get_AllRes())
         );
-		
 		return "Sucesss";
-
 	}
 	
 	
 	public String Price_getTransactionRecordLog() throws InterruptedException {//get block Resgister event
-		EthFilter filter = new EthFilter(
-			    DefaultBlockParameterName.EARLIEST,
-			    DefaultBlockParameterName.LATEST,
-			    blockConfig.contractAddress
-			);	
-		Flowable<TransactionRecordEventResponse> data = userContract.transactionRecordEventFlowable(filter);
+
+		Flowable<TransactionRecordEventResponse> data = userContract.transactionRecordEventFlowable(blockConfig.getfilter());
 		
 		data.subscribe(event -> {
 			synchronized (transactionObject) {
@@ -253,6 +231,8 @@ public class EthereumComponent_UserPrice {
 				transactionObject.setPrice(event.price.intValue());
 				transactionObject.setTransRemark(event.transRemark);
 				transactionObject.setTransDate(event.transDate);
+				eventService.set_AddTrans(transactionObject);
+
 				System.out.println("Comleted the data:"+eventService.get_AllTrans());
 			}
         },
@@ -271,7 +251,7 @@ public class EthereumComponent_UserPrice {
 			    DefaultBlockParameterName.LATEST,
 			    blockConfig.contractAddress
 			);	
-		Flowable<AdminUpdateUserRecodeEventResponse> data = userContract.adminUpdateUserRecodeEventFlowable(filter);
+		Flowable<AdminUpdateUserRecodeEventResponse> data = userContract.adminUpdateUserRecodeEventFlowable(blockConfig.getfilter());
 		data.subscribe(event -> {
 			synchronized (adminData) {    
 			        adminData.setUpdateAccount(event.updateAccount);

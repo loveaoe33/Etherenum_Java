@@ -32,27 +32,27 @@ public class EventService {
 
 	public void set_InitTrans(TransactionObject data) throws JsonProcessingException {
 		String jsonString=objectMapper.writeValueAsString(data);
-		transData.initArrayDaya(null);
+		transData.initArrayDaya(jsonString);
 	}
 
 	public void set_InitAdmin(AdminUpdateObject data) throws JsonProcessingException {
 		String jsonString=objectMapper.writeValueAsString(data);
-		updateData.initArrayDaya(null);
+		updateData.initArrayDaya(jsonString);
 	}
 
 	public void set_AddRes(ResObject data) throws JsonProcessingException {
 		String jsonString=objectMapper.writeValueAsString(data);
-		resData.setArrayData(null);
+		resData.setArrayData(jsonString);
 	}
 
 	public void set_AddTrans(TransactionObject data) throws JsonProcessingException {
 		String jsonString=objectMapper.writeValueAsString(data);
-		transData.setArrayData(null);
+		transData.setArrayData(jsonString);
 	}
 
 	public void set_AddAdmin(AdminUpdateObject data) throws JsonProcessingException {
 		String jsonString=objectMapper.writeValueAsString(data);
-		updateData.setArrayData(null);
+		updateData.setArrayData(jsonString);
 	}
 
 	public ArrayList<String> get_AllRes() {
