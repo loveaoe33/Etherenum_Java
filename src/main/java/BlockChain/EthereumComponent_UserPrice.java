@@ -45,7 +45,7 @@ import lib.UserPrice.UserResgisterEventResponse;
 import lib.UserPrice.Users;
 
 @Service
-@ComponentScan(basePackages = {"BlockChainObject","BlockChainObject"})
+@ComponentScan(basePackages = { "BlockChainObject", "BlockChainObject" })
 public class EthereumComponent_UserPrice {
 
 	private UserPrice userContract;
@@ -54,18 +54,19 @@ public class EthereumComponent_UserPrice {
 	private TransactionObject transactionObject;
 	private EventService eventService;
 	private BlockConfig blockConfig;
+
 //	private 
 //    private 
-
-
 	@Autowired
-	public EthereumComponent_UserPrice(ContractGasProvider contractGasProvider,ResObject resObject,AdminUpdateObject adminData,TransactionObject transactionObject,EventService eventService,BlockConfig blockConfig) throws IOException, CipherException {
-		this.resObject=resObject;
-		this.adminData=adminData;
-		this.transactionObject=transactionObject;
-		this.eventService=eventService;
-		this.blockConfig=blockConfig;
-		this.userContract=blockConfig.userContract;
+	public EthereumComponent_UserPrice(ContractGasProvider contractGasProvider, ResObject resObject,
+			AdminUpdateObject adminData, TransactionObject transactionObject, EventService eventService,
+			BlockConfig blockConfig) throws IOException, CipherException {
+		this.resObject = resObject;
+		this.adminData = adminData;
+		this.transactionObject = transactionObject;
+		this.eventService = eventService;
+		this.blockConfig = blockConfig;
+		this.userContract = blockConfig.userContract;
 	}
 
 	public String readFileAsString(String filePath) throws IOException {
@@ -79,17 +80,15 @@ public class EthereumComponent_UserPrice {
 		String constuctorData = "UserPrcie_Contract";
 		BigInteger value = BigInteger.ZERO;
 		org.web3j.crypto.Credentials credentials = blockConfig.node_credential(); // 需要公私鑰才能部署合約 先使用測試
-		TransactionManager transactionManager = new ClientTransactionManager(blockConfig.node5, credentials.getAddress());			
-		UserPrice userPriceContract = UserPrice.deploy(blockConfig.node5, credentials, blockConfig.contractGasProvider, constuctorData).send();
+		TransactionManager transactionManager = new ClientTransactionManager(blockConfig.node5,
+				credentials.getAddress());
+		UserPrice userPriceContract = UserPrice
+				.deploy(blockConfig.node5, credentials, blockConfig.contractGasProvider, constuctorData).send();
 		String Contract_Address = userPriceContract.getContractAddress();
 		TransactionReceipt transactionReceipt = userPriceContract.getTransactionReceipt().get();
 		String message = String.format("合約地址{},交易收據{}", Contract_Address, transactionReceipt.toString());
 		return message;
-
 	}
-
-
-
 
 	public String Price_setUser() throws Exception {
 		String NodeAddress = "123";
@@ -112,7 +111,6 @@ public class EthereumComponent_UserPrice {
 		} catch (Exception e) {
 			return "Node fail";
 		}
-
 	}
 
 	public String Price_getTest() throws Exception {
@@ -142,8 +140,6 @@ public class EthereumComponent_UserPrice {
 		String Account = "loveaoe44";
 		RemoteCall<String> data = userContract.getUser(NodeAddress, Account);
 		String TransData = data.send();
-
-		System.out.println(TransData);
 		return "Sucess";
 	}
 
@@ -160,17 +156,15 @@ public class EthereumComponent_UserPrice {
 		Boolean AccountIsVal = false;
 		String Result;
 		try {
-
-			TransactionReceipt data = userContract.updateUser(NodeAddress, Admin, UpdateAccount, UserPword, blockConfig.gasLimit,
-					blockConfig.gasPrice, PriceRemark, UpdateDate, CreateName, AccountIsVal).send();
+			TransactionReceipt data = userContract.updateUser(NodeAddress, Admin, UpdateAccount, UserPword,
+					blockConfig.gasLimit, blockConfig.gasPrice, PriceRemark, UpdateDate, CreateName, AccountIsVal)
+					.send();
 			Result = ("0x1".equals(data.getStatus())) ? "Insert Sucess" : "Insert fail";
 			return Result;
 
 		} catch (Exception e) {
 			return "Node fail";
-
 		}
-
 	}
 
 	public String Price_transPrice() {
@@ -181,28 +175,26 @@ public class EthereumComponent_UserPrice {
 		String TransDate = "20250101";
 		String Result;
 		try {
-
 			TransactionReceipt data = userContract
 					.transPrice(FromAccoun, TransPrice, TransAccount, TransRemark, TransDate).send();
 			Result = ("0x1".equals(data.getStatus())) ? "Transfer Sucess" : "Transfer fail";
 			return Result;
 		} catch (Exception e) {
 			return "Node fail";
-
 		}
 	}
 
-	public String Price_getTransactionRecord() {   //get block Trans event
+	public String Price_getTransactionRecord() { // get block Trans event
 		TransactionRecordEventResponse data = userContract.getTransactionRecordEventFromLog(null);
-			
-	      return "Sucess";
 
+		return "Sucess";
 	}
 
-	public String Price_getAdminUpdateUserRecord() {//get block Update event
-      return "Sucess";
+	public String Price_getAdminUpdateUserRecord() {// get block Update event
+		return "Sucess";
 	}
-	public String Price_getUserApprovLog() throws InterruptedException {//get block Resgister event
+
+	public String Price_getUserApprovLog() throws InterruptedException {// get block Resgister event
 		Flowable<UserResgisterEventResponse> data = userContract.userResgisterEventFlowable(blockConfig.getfilter());
 		data.subscribe(event -> {
 			synchronized (resObject) {
@@ -210,20 +202,15 @@ public class EthereumComponent_UserPrice {
 				resObject.setApprovDate(event.approvDate);
 				resObject.setResAccount(event.resAccount);
 				eventService.set_InitRes(resObject);
-				System.out.println("Comleted the data:"+eventService.get_AllRes());
 			}
-        },
-        throwable->System.out.println("Error"+throwable.getMessage()),
-        ()->System.out.println("Comleted the data:"+eventService.get_AllRes())
-        );
+		}, throwable -> System.out.println("Error" + throwable.getMessage()),
+				() -> System.out.println("Comleted the data:" + eventService.get_AllRes()));
 		return "Sucesss";
 	}
-	
-	
-	public String Price_getTransactionRecordLog() throws InterruptedException {//get block Resgister event
 
-		Flowable<TransactionRecordEventResponse> data = userContract.transactionRecordEventFlowable(blockConfig.getfilter());
-		
+	public String Price_getTransactionRecordLog() throws InterruptedException {// get block Resgister event
+		Flowable<TransactionRecordEventResponse> data = userContract
+				.transactionRecordEventFlowable(blockConfig.getfilter());
 		data.subscribe(event -> {
 			synchronized (transactionObject) {
 				transactionObject.setFromAccount(event.fromAccount);
@@ -232,40 +219,25 @@ public class EthereumComponent_UserPrice {
 				transactionObject.setTransRemark(event.transRemark);
 				transactionObject.setTransDate(event.transDate);
 				eventService.set_AddTrans(transactionObject);
-
-				System.out.println("Comleted the data:"+eventService.get_AllTrans());
 			}
-        },
-        throwable->System.out.println("Error"+throwable.getMessage()),
-        ()->System.out.println("Comleted")
-        );
-		
+		}, throwable -> System.out.println("Error" + throwable.getMessage()), () -> System.out.println("Comleted"));
 		return "Sucesss";
-
 	}
-	
-	
-	public String Price_getAdminUpdateLog() throws InterruptedException {//get block Resgister event
-		EthFilter filter = new EthFilter(
-			    DefaultBlockParameterName.EARLIEST,
-			    DefaultBlockParameterName.LATEST,
-			    blockConfig.contractAddress
-			);	
-		Flowable<AdminUpdateUserRecodeEventResponse> data = userContract.adminUpdateUserRecodeEventFlowable(blockConfig.getfilter());
+
+	public String Price_getAdminUpdateLog() throws InterruptedException {// get block Resgister event
+		EthFilter filter = new EthFilter(DefaultBlockParameterName.EARLIEST, DefaultBlockParameterName.LATEST,
+				blockConfig.contractAddress);
+		Flowable<AdminUpdateUserRecodeEventResponse> data = userContract
+				.adminUpdateUserRecodeEventFlowable(blockConfig.getfilter());
 		data.subscribe(event -> {
-			synchronized (adminData) {    
-			        adminData.setUpdateAccount(event.updateAccount);
-			        adminData.setOldData(event.oldData);
-			        adminData.setUpdateAdmin(event.updateAdmin);
-			        adminData.setUpdateData(event.updateData);
-			        eventService.set_InitAdmin(adminData);
-				System.out.println("Comleted the data:"+eventService.get_AllAdmin());
+			synchronized (adminData) {
+				adminData.setUpdateAccount(event.updateAccount);
+				adminData.setOldData(event.oldData);
+				adminData.setUpdateAdmin(event.updateAdmin);
+				adminData.setUpdateData(event.updateData);
+				eventService.set_InitAdmin(adminData);
 			}
-        },
-        throwable->System.out.println("Error"+throwable.getMessage()),
-        ()->System.out.println("Comleted")
-        );
-		
+		}, throwable -> System.out.println("Error" + throwable.getMessage()), () -> System.out.println("Comleted"));
 		return "Sucesss";
 
 	}
