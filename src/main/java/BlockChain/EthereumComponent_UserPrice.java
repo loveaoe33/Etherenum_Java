@@ -186,7 +186,6 @@ public class EthereumComponent_UserPrice {
 
 	public String Price_getTransactionRecord() { // get block Trans event
 		TransactionRecordEventResponse data = userContract.getTransactionRecordEventFromLog(null);
-
 		return "Sucess";
 	}
 
