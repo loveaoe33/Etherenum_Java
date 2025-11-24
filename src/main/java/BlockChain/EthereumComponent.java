@@ -159,7 +159,6 @@ public class EthereumComponent {
 	// 確認錢包是否有效帳戶
 	public boolean Check_Wallet_Bool(String Wallet_Address) throws InterruptedException, ExecutionException { // 確認錢包是否正確
 		try {
-
 			EthGetBalance balace = web3j.ethGetBalance(Wallet_Address, DefaultBlockParameterName.LATEST).sendAsync()
 					.get();
 			String Wei = (balace.getBalance()).toString();
