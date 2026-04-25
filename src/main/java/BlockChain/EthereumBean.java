@@ -2,42 +2,39 @@ package BlockChain;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.web3j.tx.ClientTransactionManager;
-import org.web3j.tx.RawTransactionManager;
-import org.web3j.tx.TransactionManager;
 import org.web3j.tx.gas.ContractGasProvider;
-import org.web3j.utils.Convert;
-import org.web3j.utils.Numeric;
 
 
 @Configuration
 public class EthereumBean {
 
+	// [MODIFIED] Changed method name to camelCase 'contractBean'.
+	// Removed unused imports and cleaned up auto-generated TODO comments.
 	@Bean
-	public ContractGasProvider ContractBean() {
+	public ContractGasProvider contractBean() {
 		return new ContractGasProvider() {
 			
 			@Override
 			public java.math.BigInteger getGasPrice() {
-				// TODO Auto-generated method stub
+				// Return default gas price
 				return java.math.BigInteger.valueOf(1000L);
 			}
 	
 			@Override
 			public java.math.BigInteger getGasLimit(String contractFunc) {
-				// TODO Auto-generated method stub
+				// Return default gas limit for specific functions
 				return java.math.BigInteger.valueOf(1000000);
 			}
 	
 			@Override
 			public java.math.BigInteger getGasLimit() {
-				// TODO Auto-generated method stub
+				// Return null to fallback to default
 				return null;
 			}
 	
 			@Override
 			public java.math.BigInteger getGasPrice(String contractFunc) {
-				// TODO Auto-generated method stub
+				// Return null to fallback to default
 				return null;
 			}
 		};

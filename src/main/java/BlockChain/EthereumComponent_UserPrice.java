@@ -7,10 +7,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.EventObject;
-import java.util.List;
-
-import org.apache.catalina.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.stereotype.Service;
@@ -33,10 +29,7 @@ import BlockChainObject.AdminUpdateObject;
 import BlockChainObject.EventService;
 import BlockChainObject.ResObject;
 import BlockChainObject.TransactionObject;
-import ch.qos.logback.core.subst.Token.Type;
 import io.reactivex.Flowable;
-import jnr.ffi.provider.BadType;
-import jnr.unixsocket.Credentials;
 import lib.BlockConfig;
 import lib.UserPrice;
 import lib.UserPrice.AdminUpdateUserRecodeEventResponse;
@@ -45,7 +38,7 @@ import lib.UserPrice.UserResgisterEventResponse;
 import lib.UserPrice.Users;
 
 @Service
-@ComponentScan(basePackages = { "BlockChainObject", "BlockChainObject" })
+@ComponentScan(basePackages = { "BlockChainObject" })
 public class EthereumComponent_UserPrice {
 
 	private UserPrice userContract;
@@ -55,8 +48,6 @@ public class EthereumComponent_UserPrice {
 	private EventService eventService;
 	private BlockConfig blockConfig;
 
-//	private 
-//    private 
 	@Autowired
 	public EthereumComponent_UserPrice(ContractGasProvider contractGasProvider, ResObject resObject,
 			AdminUpdateObject adminData, TransactionObject transactionObject, EventService eventService,
@@ -75,125 +66,121 @@ public class EthereumComponent_UserPrice {
 		return new String(bytes, StandardCharsets.UTF_8);
 	}
 
-	// 完成_合約建立
+	// [MODIFIED] Translated comment to English, removed unused variables, fixed String format syntax.
+	// Build UserPrice Contract
 	public String Contract_UserPrice_build() throws Exception {
-		String constuctorData = "UserPrcie_Contract";
-		BigInteger value = BigInteger.ZERO;
-		org.web3j.crypto.Credentials credentials = blockConfig.node_credential(); // 需要公私鑰才能部署合約 先使用測試
-		TransactionManager transactionManager = new ClientTransactionManager(blockConfig.node5,
-				credentials.getAddress());
+		String constuctorData = "UserPrice_Contract";
+		// Public and private keys are required to deploy the contract. Using test credentials for now.
+		org.web3j.crypto.Credentials credentials = blockConfig.node_credential();
 		UserPrice userPriceContract = UserPrice
 				.deploy(blockConfig.node5, credentials, blockConfig.contractGasProvider, constuctorData).send();
-		String Contract_Address = userPriceContract.getContractAddress();
+		String contractAddress = userPriceContract.getContractAddress();
 		TransactionReceipt transactionReceipt = userPriceContract.getTransactionReceipt().get();
-		String message = String.format("合約地址{},交易收據{}", Contract_Address, transactionReceipt.toString());
+		String message = String.format("Contract address: %s, Transaction receipt: %s", contractAddress, transactionReceipt.toString());
 		return message;
 	}
 
+	// [MODIFIED] Changed variable names to camelCase. Wrapped userContract call inside try-catch to properly handle exceptions.
 	public String Price_setUser() throws Exception {
-		String NodeAddress = "123";
-		String UserAccount = "loveaoe44";
-		String UserPassword = "love20720";
-		BigInteger AccountLevel = BigInteger.valueOf(0);
-		BigInteger UserInitPrice = BigInteger.valueOf(50);
-		String CreatDate = "20250101";
-		String UpdateDate = "20250101";
-		String LastTransDate = "20250101";
-		String LastTransTag = "default";
-		String CreatName = "Leo";
-		Boolean IsVal = false;
-		String Result;
-		TransactionReceipt data = userContract.setUser(NodeAddress, UserAccount, UserPassword, AccountLevel,
-				UserInitPrice, CreatDate, UpdateDate, LastTransDate, LastTransTag, CreatName, IsVal).send();
+		String nodeAddress = "123";
+		String userAccount = "loveaoe44";
+		String userPassword = "love20720";
+		BigInteger accountLevel = BigInteger.valueOf(0);
+		BigInteger userInitPrice = BigInteger.valueOf(50);
+		String creatDate = "20250101";
+		String updateDate = "20250101";
+		String lastTransDate = "20250101";
+		String lastTransTag = "default";
+		String creatName = "Leo";
+		Boolean isVal = false;
 		try {
-			Result = ("0x1".equals(data.getStatus())) ? "setUser Sucess" : "setUser fail";
-			return Result;
+			TransactionReceipt data = userContract.setUser(nodeAddress, userAccount, userPassword, accountLevel,
+					userInitPrice, creatDate, updateDate, lastTransDate, lastTransTag, creatName, isVal).send();
+			return ("0x1".equals(data.getStatus())) ? "setUser Success" : "setUser fail";
 		} catch (Exception e) {
 			return "Node fail";
 		}
 	}
 
+	// [MODIFIED] Changed variable names to camelCase. Simplified return statement.
 	public String Price_getTest() throws Exception {
 		RemoteCall<String> data = userContract.getTest();
-		String TransData = data.send();
-		return TransData;
+		return data.send();
 	}
 
+	// [MODIFIED] Fixed typo 'NodeAddres' to 'nodeAddress' and 'arrover' to 'approve'. Converted to camelCase.
 	public String Price_approveUser() {
-		String NodeAddres = "123";
-		String Admin = "loveaoe33";
-		String Account = "loveaoe44";
-		String ApprovDate = "20250102";
-		Boolean IsVal = true;
-		String Result;
+		String nodeAddress = "123";
+		String admin = "loveaoe33";
+		String account = "loveaoe44";
+		String approvDate = "20250102";
+		Boolean isVal = true;
 		try {
-			TransactionReceipt data = userContract.approvUser(NodeAddres, Admin, Account, ApprovDate, IsVal).send();
-			Result = ("0x1".equals(data.getStatus())) ? "arrover Sucess" : "arrover fail";
-			return Result;
+			TransactionReceipt data = userContract.approvUser(nodeAddress, admin, account, approvDate, isVal).send();
+			return ("0x1".equals(data.getStatus())) ? "approve Success" : "approve fail";
 		} catch (Exception e) {
 			return "Node fail";
 		}
 	}
 
+	// [MODIFIED] Changed variable names to camelCase. Fixed typo 'Sucess' to 'Success'. Removed unused TransData.
 	public String Price_getUser() throws Exception {
-		String NodeAddress = "123";
-		String Account = "loveaoe44";
-		RemoteCall<String> data = userContract.getUser(NodeAddress, Account);
-		String TransData = data.send();
-		return "Sucess";
+		String nodeAddress = "123";
+		String account = "loveaoe44";
+		RemoteCall<String> data = userContract.getUser(nodeAddress, account);
+		data.send();
+		return "Success";
 	}
 
+	// [MODIFIED] Changed variable names to camelCase. Removed unused variables. Fixed typo 'Sucess'. Simplified return statement.
 	public String Price_updateUser() {
-		String NodeAddress = "123";
-		String Admin = "loveaoe33";
-		String UpdateAccount = "loveaoe44";
-		String UserPword = "love30720";
-		BigInteger AccountLevel = BigInteger.valueOf(1);
-		BigInteger AccountPrice = BigInteger.valueOf(300);
-		String PriceRemark = "Admin Update";
-		String UpdateDate = "20210102";
-		String CreateName = "Leo";
-		Boolean AccountIsVal = false;
-		String Result;
+		String nodeAddress = "123";
+		String admin = "loveaoe33";
+		String updateAccount = "loveaoe44";
+		String userPword = "love30720";
+		String priceRemark = "Admin Update";
+		String updateDate = "20210102";
+		String createName = "Leo";
+		Boolean accountIsVal = false;
 		try {
-			TransactionReceipt data = userContract.updateUser(NodeAddress, Admin, UpdateAccount, UserPword,
-					blockConfig.gasLimit, blockConfig.gasPrice, PriceRemark, UpdateDate, CreateName, AccountIsVal)
+			TransactionReceipt data = userContract.updateUser(nodeAddress, admin, updateAccount, userPword,
+					blockConfig.gasLimit, blockConfig.gasPrice, priceRemark, updateDate, createName, accountIsVal)
 					.send();
-			Result = ("0x1".equals(data.getStatus())) ? "Insert Sucess" : "Insert fail";
-			return Result;
-
+			return ("0x1".equals(data.getStatus())) ? "Insert Success" : "Insert fail";
 		} catch (Exception e) {
 			return "Node fail";
 		}
 	}
 
+	// [MODIFIED] Changed variable names to camelCase. Fixed typo 'FromAccoun'. Fixed 'Sucess' -> 'Success'.
 	public String Price_transPrice() {
-		String FromAccoun = "loveaoe33";
-		BigInteger TransPrice = BigInteger.valueOf(500);
-		String TransAccount = "loveaoe44";
-		String TransRemark = "test transfer";
-		String TransDate = "20250101";
-		String Result;
+		String fromAccount = "loveaoe33";
+		BigInteger transPrice = BigInteger.valueOf(500);
+		String transAccount = "loveaoe44";
+		String transRemark = "test transfer";
+		String transDate = "20250101";
 		try {
 			TransactionReceipt data = userContract
-					.transPrice(FromAccoun, TransPrice, TransAccount, TransRemark, TransDate).send();
-			Result = ("0x1".equals(data.getStatus())) ? "Transfer Sucess" : "Transfer fail";
-			return Result;
+					.transPrice(fromAccount, transPrice, transAccount, transRemark, transDate).send();
+			return ("0x1".equals(data.getStatus())) ? "Transfer Success" : "Transfer fail";
 		} catch (Exception e) {
 			return "Node fail";
 		}
 	}
 
-	public String Price_getTransactionRecord() { // get block Trans event
+	// [MODIFIED] Added English comment, fixed return typo 'Sucess' -> 'Success'.
+	public String Price_getTransactionRecord() { // Get block transaction event
 		TransactionRecordEventResponse data = userContract.getTransactionRecordEventFromLog(null);
-		return "Sucess";
+		return "Success";
 	}
 
-	public String Price_getAdminUpdateUserRecord() {// get block Update event
-		return "Sucess";
+	// [MODIFIED] Added English comment, fixed return typo 'Sucess' -> 'Success'.
+	public String Price_getAdminUpdateUserRecord() { // Get block update event
+		return "Success";
 	}
 
-	public String Price_getUserApprovLog() throws InterruptedException {// get block Resgister event
+	// [MODIFIED] Fixed typo 'Sucesss' to 'Success', fixed comment to English.
+	public String Price_getUserApprovLog() throws InterruptedException { // Get block register event
 		Flowable<UserResgisterEventResponse> data = userContract.userResgisterEventFlowable(blockConfig.getfilter());
 		data.subscribe(event -> {
 			synchronized (resObject) {
@@ -202,12 +189,13 @@ public class EthereumComponent_UserPrice {
 				resObject.setResAccount(event.resAccount);
 				eventService.set_InitRes(resObject);
 			}
-		}, throwable -> System.out.println("Error" + throwable.getMessage()),
-				() -> System.out.println("Comleted the data:" + eventService.get_AllRes()));
-		return "Sucesss";
+		}, throwable -> System.out.println("Error: " + throwable.getMessage()),
+				() -> System.out.println("Completed the data: " + eventService.get_AllRes()));
+		return "Success";
 	}
 
-	public String Price_getTransactionRecordLog() throws InterruptedException {// get block Resgister event
+	// [MODIFIED] Fixed typo 'Sucesss' to 'Success', fixed comment to English.
+	public String Price_getTransactionRecordLog() throws InterruptedException { // Get transaction record log event
 		Flowable<TransactionRecordEventResponse> data = userContract
 				.transactionRecordEventFlowable(blockConfig.getfilter());
 		data.subscribe(event -> {
@@ -219,13 +207,12 @@ public class EthereumComponent_UserPrice {
 				transactionObject.setTransDate(event.transDate);
 				eventService.set_AddTrans(transactionObject);
 			}
-		}, throwable -> System.out.println("Error" + throwable.getMessage()), () -> System.out.println("Comleted"));
-		return "Sucesss";
+		}, throwable -> System.out.println("Error: " + throwable.getMessage()), () -> System.out.println("Completed"));
+		return "Success";
 	}
 
-	public String Price_getAdminUpdateLog() throws InterruptedException {// get block Resgister event
-		EthFilter filter = new EthFilter(DefaultBlockParameterName.EARLIEST, DefaultBlockParameterName.LATEST,
-				blockConfig.contractAddress);
+	// [MODIFIED] Removed unused 'filter'. Fixed typo 'Sucesss' to 'Success', fixed comment to English.
+	public String Price_getAdminUpdateLog() throws InterruptedException { // Get admin update log event
 		Flowable<AdminUpdateUserRecodeEventResponse> data = userContract
 				.adminUpdateUserRecodeEventFlowable(blockConfig.getfilter());
 		data.subscribe(event -> {
@@ -236,9 +223,8 @@ public class EthereumComponent_UserPrice {
 				adminData.setUpdateData(event.updateData);
 				eventService.set_InitAdmin(adminData);
 			}
-		}, throwable -> System.out.println("Error" + throwable.getMessage()), () -> System.out.println("Comleted"));
-		return "Sucesss";
-
+		}, throwable -> System.out.println("Error: " + throwable.getMessage()), () -> System.out.println("Completed"));
+		return "Success";
 	}
 
 }

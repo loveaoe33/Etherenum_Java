@@ -1,8 +1,5 @@
 package BlockChainObject;
 
-import java.math.BigInteger;
-import java.util.ArrayList;
-
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -21,15 +18,17 @@ import lombok.Setter;
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class BlockUser {
-    public String userAccount;
-    public String userPword;
-    public int accountLevel;
-    public int accountPrice;
-    public String createDate;
-    public String updateDate;
-    public String lastTransDate;
-    public String lastTransTag;
-    public String createName;
-    public Boolean accountIsVial;
+	// [MODIFIED] Changed fields from public to private for proper encapsulation.
+	// Removed unused imports. Fixed typo in variable name 'accountIsVial' to 'accountIsVal'.
+    private String userAccount;
+    private String userPword;
+    private int accountLevel;
+    private int accountPrice;
+    private String createDate;
+    private String updateDate;
+    private String lastTransDate;
+    private String lastTransTag;
+    private String createName;
+    private Boolean accountIsVal;
 
 }
